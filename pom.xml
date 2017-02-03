@@ -27,11 +27,9 @@
             <layout>default</layout>
             <releases>
                 <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
             </snapshots>
         </repository>
     </repositories>
@@ -198,11 +196,6 @@
                     <artifactId>infinispan-core</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-core</artifactId>
-            <version>${version.infinispan}</version>
         </dependency>
 
         <dependency>
