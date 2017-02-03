@@ -1,15 +1,17 @@
 package org.jboss.perf;
 
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.AvailableSettings;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,8 +24,6 @@ public abstract class BenchmarkBase<T> {
       NON_CACHED_PROPERTIES.put( AvailableSettings.USE_SECOND_LEVEL_CACHE, "false" );
    }
 
-   protected static final String PERSISTENCE_UNIT = "default";
-
    protected static void log(Throwable t) {
       if ( PRINT_STACK_TRACES ) t.printStackTrace();
    }
@@ -31,14 +31,19 @@ public abstract class BenchmarkBase<T> {
    @State(Scope.Benchmark)
    public static class BenchmarkState {
 
-      protected EntityManagerFactory entityManagerFactory;
-      protected EntityManager entityManager;
+      protected SessionFactory sessionFactory;
+      protected Session session;
 
       @Setup
       public void setup() throws Throwable {
          try {
-            entityManagerFactory = Persistence.createEntityManagerFactory( PERSISTENCE_UNIT, NON_CACHED_PROPERTIES );
-            entityManager = entityManagerFactory.createEntityManager();
+
+            final StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
+               .configure() // configures settings from hibernate.cfg.xml
+               .build();
+            sessionFactory = new MetadataSources( registry ).buildMetadata().buildSessionFactory();
+
+            session = sessionFactory.openSession();
          } catch (Throwable t) {
             t.printStackTrace();
             log( t );
@@ -49,8 +54,8 @@ public abstract class BenchmarkBase<T> {
       @TearDown
       public void shutdown() throws Throwable {
          try {
-            entityManager.close();
-            entityManagerFactory.close();
+            session.close();
+            sessionFactory.close();
          } catch (Throwable t) {
             log( t );
             throw t;

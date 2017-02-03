@@ -1,9 +1,9 @@
 package org.jboss.perf;
 
+import org.hibernate.query.Query;
 import org.jboss.perf.model.Person;
 import org.openjdk.jmh.annotations.Benchmark;
 
-import javax.persistence.Query;
 
 public class HqlParsingBenchmark extends BenchmarkBase<Person> {
 
@@ -18,6 +18,9 @@ public class HqlParsingBenchmark extends BenchmarkBase<Person> {
    }
 
    private Query parseQuery(String query, BenchmarkState benchmarkState) {
-      return benchmarkState.entityManager.createQuery( query );
+      benchmarkState.session.beginTransaction();
+      Query _query = benchmarkState.session.createQuery( query );
+      benchmarkState.session.getSession().getTransaction().commit();
+      return _query;
    }
 }

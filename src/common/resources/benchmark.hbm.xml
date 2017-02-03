@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" [
+        <!ENTITY types SYSTEM "classpath://your/domain/types.xml">
+        ]>
+
+<hibernate-mapping package="org.jboss.perf">
+    <class name="org.jboss.perf.model.Person" table="person">
+        <id name="id" type="string" column="i_id" access="field" />
+        <property name="firstName"/>
+    </class>
+</hibernate-mapping>
