@@ -9,15 +9,9 @@
 
     <name>JMH hibernate hql parsing benchmark</name>
 
-    <!--
-       This is the demo/sample template build script for building Java benchmarks with JMH.
-       Edit as needed.
-    -->
-
     <prerequisites>
         <maven>3.0</maven>
     </prerequisites>
-
 
     <repositories>
         <repository>
@@ -36,36 +30,12 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <!--
-            JMH version to use with this project.
-          -->
         <jmh.version>1.17.3</jmh.version>
-
-        <!--
-            Java source/target to use for compilation.
-          -->
         <javac.target>1.8</javac.target>
-
-        <!--
-            Name of the benchmark Uber-JAR to generate.
-          -->
         <uberjar.name>benchmarks</uberjar.name>
-
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javac.target>1.8</javac.target>
         <version.jmh>1.11.2</version.jmh>
         <uberjar.name>benchmarks</uberjar.name>
-        <!--<version.hibernate>5.0.1.Final</version.hibernate>-->
-        <version.hibernate.validator>4.1.0.Final</version.hibernate.validator>
-        <version.jbossts>4.16.3.Final</version.jbossts>
-        <version.jbossts.jts>4.17.3.Final</version.jbossts.jts>
-        <version.jbossstdio>1.0.2.GA</version.jbossstdio>
-        <version.org.jboss.naming>5.0.3.GA</version.org.jboss.naming>
-        <version.xapool>1.5.0</version.xapool>
-        <version.ironjacamar>1.0.31.Final</version.ironjacamar>
-        <version.shrinkwrap>1.1.2</version.shrinkwrap>
-        <version.shrinkwrap.descriptors>1.1.0-beta-1</version.shrinkwrap.descriptors>
     </properties>
 
     <dependencies>
@@ -80,106 +50,11 @@
             <version>${jmh.version}</version>
             <scope>provided</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.jboss.naming</groupId>
-            <artifactId>jnp-client</artifactId>
-            <version>${version.org.jboss.naming}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.jboss.logging</groupId>
-                    <artifactId>jboss-logging-spi</artifactId>
-                </exclusion>
-            </exclusions>
-
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.naming</groupId>
-            <artifactId>jnpserver</artifactId>
-            <version>${version.org.jboss.naming}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.jboss.logging</groupId>
-                    <artifactId>jboss-logging-spi</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-core</artifactId>
-            <version>${version.infinispan}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging</artifactId>
-            <version>3.3.0.Final</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging-spi</artifactId>
-            <version>2.1.2.GA</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>org.jboss.ironjacamar</groupId>
-            <artifactId>ironjacamar-embedded</artifactId>
-            <version>${version.ironjacamar}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.jbossts</groupId>
-            <artifactId>jbossjta</artifactId>
-            <version>${version.jbossts}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.hibernate.javax.persistence</groupId>
-                    <artifactId>hibernate-jpa-2.0-api</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.shrinkwrap</groupId>
-            <artifactId>shrinkwrap-api</artifactId>
-            <version>${version.shrinkwrap}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.shrinkwrap</groupId>
-            <artifactId>shrinkwrap-impl-base</artifactId>
-            <version>${version.shrinkwrap}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.shrinkwrap.descriptors</groupId>
-            <artifactId>shrinkwrap-descriptors-api</artifactId>
-            <version>${version.shrinkwrap.descriptors}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>${version.hibernate}</version>
         </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-infinispan</artifactId>
-            <version>${version.hibernate}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.jboss.spec.javax.transaction</groupId>
-                    <artifactId>jboss-transaction-api_1.1_spec</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.infinispan</groupId>
-                    <artifactId>infinispan-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
@@ -301,7 +176,6 @@
 
             <properties>
                 <version.hibernate>5.2.0.Final</version.hibernate>
-                <version.infinispan>8.0.1.Final</version.infinispan>
             </properties>
 
             <build>
@@ -309,7 +183,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>1.5</version>
+                        <version>1.8</version>
                         <executions>
                             <execution>
                                 <id>add-sources</id>
@@ -341,7 +215,6 @@
 
             <properties>
                 <version.hibernate>6.0.0-SNAPSHOT</version.hibernate>
-                <version.infinispan>8.0.1.Final</version.infinispan>
             </properties>
 
             <build>
@@ -349,7 +222,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>1.5</version>
+                        <version>1.8</version>
                         <executions>
                             <execution>
                                 <id>add-sources</id>
