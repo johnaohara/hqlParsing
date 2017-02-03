@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.jboss.perf</groupId>
-    <artifactId>sqmParsing</artifactId>
+    <artifactId>hqlParsing</artifactId>
     <version>0.1</version>
     <packaging>jar</packaging>
 
-    <name>JMH benchmark sample: Java</name>
+    <name>JMH hibernate hql parsing benchmark</name>
 
     <!--
        This is the demo/sample template build script for building Java benchmarks with JMH.
@@ -129,19 +129,6 @@
             <artifactId>ironjacamar-embedded</artifactId>
             <version>${version.ironjacamar}</version>
         </dependency>
-        <dependency>
-            <groupId>org.jboss.ironjacamar</groupId>
-            <artifactId>ironjacamar-core-impl</artifactId>
-            <version>${version.ironjacamar}</version>
-            <scope>runtime</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.picketbox</groupId>
-                    <artifactId>picketbox</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
 
         <dependency>
             <groupId>org.jboss.jbossts</groupId>
@@ -177,11 +164,6 @@
             <artifactId>hibernate-core</artifactId>
             <version>${version.hibernate}</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.hibernate</groupId>-->
-            <!--<artifactId>hibernate-entitymanager</artifactId>-->
-            <!--<version>${version.hibernate}</version>-->
-        <!--</dependency>-->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-infinispan</artifactId>
@@ -202,34 +184,6 @@
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-c3p0</artifactId>
             <version>${version.hibernate}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-hikaricp</artifactId>
-            <version>${version.hibernate}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.zaxxer</groupId>
-                    <artifactId>HikariCP</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP-java6</artifactId>
-            <version>2.3.3</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>com.mockrunner</groupId>
-            <artifactId>mockrunner-core</artifactId>
-            <version>1.1.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.mockrunner</groupId>
-            <artifactId>mockrunner-jdbc</artifactId>
-            <version>1.1.2</version>
         </dependency>
         <dependency>
             <groupId>org.perfmock</groupId>
@@ -421,24 +375,6 @@
                 </plugins>
             </build>
         </profile>
-
-        <profile>
-            <id>h2</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-                <property>
-                    <name>h2</name>
-                </property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>com.h2database</groupId>
-                    <artifactId>h2</artifactId>
-                    <version>1.3.176</version>
-                </dependency>
-            </dependencies>
-        </profile>
-
 
     </profiles>
 </project>
