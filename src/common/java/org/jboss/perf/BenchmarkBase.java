@@ -6,7 +6,6 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
-import org.perfmock.PerfMockDriver;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -22,10 +21,9 @@ public abstract class BenchmarkBase<T> {
    static {
 
       NON_CACHED_PROPERTIES.put( AvailableSettings.USE_SECOND_LEVEL_CACHE, "false" );
-      PerfMockDriver.getInstance(); // make sure PerfMockDriver is classloaded
    }
 
-   protected static final String C3P0 = "c3p0";
+   protected static final String PERSISTENCE_UNIT = "default";
 
    protected static void log(Throwable t) {
       if ( PRINT_STACK_TRACES ) t.printStackTrace();
@@ -34,22 +32,15 @@ public abstract class BenchmarkBase<T> {
    @State(Scope.Benchmark)
    public abstract static class BenchmarkState<T> {
 
-      String persistenceUnit = C3P0 + ".mock";
-
-      private JndiHelper jndiHelper = new JndiHelper();
-      private JtaHelper jtaHelper = new JtaHelper();
       protected EntityManagerFactory entityManagerFactory;
 
 
       @Setup
       public void setup() throws Throwable {
          try {
-            jndiHelper.start();
-            jtaHelper.start();
 
-            entityManagerFactory = Persistence.createEntityManagerFactory( persistenceUnit, NON_CACHED_PROPERTIES );
+            entityManagerFactory = Persistence.createEntityManagerFactory( PERSISTENCE_UNIT, NON_CACHED_PROPERTIES );
 
-            PerfMockDriver.getInstance().setMocking( true );
          } catch (Throwable t) {
             t.printStackTrace();
             log( t );
@@ -63,10 +54,7 @@ public abstract class BenchmarkBase<T> {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             entityManager.close();
 
-            PerfMockDriver.getInstance().setMocking( false );
             entityManagerFactory.close();
-            jtaHelper.stop();
-            jndiHelper.stop();
          } catch (Throwable t) {
             log( t );
             throw t;
