@@ -14,8 +14,6 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
-import org.openjdk.jmh.infra.Blackhole;
-import org.openjdk.jmh.infra.ThreadParams;
 import org.perfmock.FunctionalMockResultSet;
 import org.perfmock.PerfMockDriver;
 
@@ -30,7 +28,6 @@ import javax.persistence.SharedCacheMode;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.metamodel.EntityType;
@@ -43,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -145,15 +141,11 @@ public abstract class BenchmarkBase<T> {
       private TransactionManager tm = com.arjuna.ats.jta.TransactionManager.transactionManager();
       private boolean managedTransaction;
       private SingularAttribute idProperty;
-      private String entityName;
 
       protected EntityManagerFactory getEntityManagerFactory() {
          return entityManagerFactory;
       }
 
-      protected SingularAttribute getIdProperty() {
-         return idProperty;
-      }
 
       @Setup
       public void setup() throws Throwable {
@@ -186,7 +178,7 @@ public abstract class BenchmarkBase<T> {
                   break;
                }
             }
-            entityName = entityManagerFactory.getMetamodel().entity( getClazz() ).getName();
+
             if ( persistenceUnit.contains( "mock" ) ) {
                PerfMockDriver.getInstance().setMocking( true );
             }
@@ -221,7 +213,7 @@ public abstract class BenchmarkBase<T> {
          MockResultSet newId = new FunctionalMockResultSet( "newId" );
          newId.setColumnsCaseSensitive( true );
          AtomicLong counter = new AtomicLong( initialValue );
-         newId.addRow( Collections.<Object>singletonList( (Supplier) counter::getAndIncrement ) );
+         newId.addRow( Collections.singletonList( (Supplier) counter::getAndIncrement ) );
          return newId;
       }
 
@@ -233,11 +225,7 @@ public abstract class BenchmarkBase<T> {
          } else {
             l2Properties.put( InfinispanRegionFactory.INFINISPAN_CONFIG_RESOURCE_PROP, "2lc-cfg-71.xml" );
          }
-         l2Properties.put( org.hibernate.jpa.AvailableSettings.SHARED_CACHE_MODE, SharedCacheMode.ALL.toString() );
-         //properties.put(AvailableSettings.TRANSACTION_TYPE, PersistenceUnitTransactionType.JTA.toString());
-         //properties.put("hibernate.transaction.factory_class", JdbcTransactionFactory.class.getName());
-         //properties.put("hibernate.transaction.factory_class", JtaTransactionFactory.class.getName());
-         //properties.put(Environment.JTA_PLATFORM, "org.hibernate.service.jta.platform.internal.JBossStandAloneJtaPlatform");
+         l2Properties.put( org.hibernate.cfg.AvailableSettings.JPA_SHARED_CACHE_MODE, SharedCacheMode.ALL.toString() );
          l2Properties.put( AvailableSettings.CACHE_REGION_FACTORY, InfinispanRegionFactory.class.getName() );
 
          l2Properties.put( AvailableSettings.USE_SECOND_LEVEL_CACHE, "true" );
@@ -462,12 +450,6 @@ public abstract class BenchmarkBase<T> {
                   beginTransaction( entityManager );
                }
             } else {
-               // Hibernate 4.2 does not support JPA 2.1 with delete criteria query
-//                    String jpql = "DELETE FROM " + entityName;
-//                    if (allowedIds != null) {
-//                        jpql += " WHERE " + idProperty.getName() + " NOT IN (" + collectionToString(allowedIds) + ")";
-//                    }
-//                    deleted = entityManager.createQuery(jpql).executeUpdate();
                CriteriaDelete<T> query = cb.createCriteriaDelete( getClazz() );
                Root<T> root = query.from( getClazz() );
                if ( allowedIds != null ) {
@@ -490,34 +472,6 @@ public abstract class BenchmarkBase<T> {
 
       protected Predicate getRootLevelCondition(CriteriaBuilder criteriaBuilder, Root<T> root) {
          return null;
-      }
-
-      private int flushEntities(EntityManager entityManager, Map<Long, Integer> ids) throws Exception {
-         if ( ids.isEmpty() ) return 0;
-         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-         ArrayList<T> newEntities = new ArrayList<T>( batchLoadSize );
-         CriteriaQuery<Long> query = cb.createQuery( Long.class );
-         Root<T> root = query.from( getClazz() );
-         Path<Long> idPath = root.get( idProperty );
-         for (long id : entityManager.createQuery( query.select( idPath ).where( idPath.in( ids.keySet() ) ) ).getResultList()) {
-            ids.remove( id );
-         }
-         for (int j = ids.size(); j >= 0; --j) {
-            T entity = randomEntity( ThreadLocalRandom.current() );
-            entityManager.persist( entity );
-            newEntities.add( entity );
-         }
-         entityManager.flush();
-         commitTransaction( entityManager );
-         beginTransaction( entityManager );
-         // replace all ids
-         int j = 0;
-         for (int index : ids.values()) {
-            regularIds.set( index, (Long) persistenceUnitUtil.getIdentifier( newEntities.get( j++ ) ) );
-         }
-         ids.clear();
-         entityManager.clear();
-         return newEntities.size();
       }
 
       @TearDown
@@ -584,243 +538,11 @@ public abstract class BenchmarkBase<T> {
 
       public abstract T randomEntity(ThreadLocalRandom random);
 
-      public abstract void modify(T entity, ThreadLocalRandom random);
-
-      public Long getRandomId(ThreadLocalRandom random) {
-         return regularIds.get( random.nextInt( dbSize ) );
-      }
-
-      public Long getRandomId(ThreadLocalRandom random, int rangeStart, int rangeEnd) {
-         return regularIds.get( random.nextInt( rangeStart, rangeEnd ) );
-      }
    }
 
    @State(Scope.Thread)
    public static class ThreadState {
       ThreadLocalRandom random = ThreadLocalRandom.current();
-   }
-
-   protected static String collectionToString(Collection collection) {
-      StringBuilder sb = new StringBuilder();
-      for (Object element : collection) {
-         if ( sb.length() != 0 ) {
-            sb.append( ", " );
-         }
-         sb.append( element );
-      }
-      return sb.toString();
-   }
-
-   protected void testCreate(BenchmarkState<T> benchmarkState, ThreadState threadState) throws Exception {
-      EntityManager entityManager = benchmarkState.entityManagerFactory.createEntityManager();
-      try {
-         benchmarkState.beginTransaction( entityManager );
-         try {
-            for (int i = 0; i < benchmarkState.transactionSize; ++i) {
-               T person = benchmarkState.randomEntity( threadState.random );
-               entityManager.persist( person );
-            }
-            benchmarkState.commitTransaction( entityManager );
-         } catch (Exception e) {
-            if ( isLockException( e ) ) {
-               benchmarkState.rollbackTransaction( entityManager );
-            } else {
-               log( e );
-               benchmarkState.rollbackTransaction( entityManager );
-               throw e;
-            }
-         }
-      } finally {
-         entityManager.close();
-      }
-   }
-
-   protected void testRead(BenchmarkState<T> benchmarkState, ThreadState threadState, Blackhole blackhole) throws Exception {
-      EntityManager entityManager = benchmarkState.entityManagerFactory.createEntityManager();
-      try {
-         if ( benchmarkState.useTx ) {
-            benchmarkState.beginTransaction( entityManager );
-         }
-         try {
-            for (Long id : randomIds( benchmarkState, threadState.random )) {
-               T entity = entityManager.find( benchmarkState.getClazz(), id );
-               if ( entity == null ) {
-                  onReadNull( id );
-               }
-               blackhole.consume( entity );
-            }
-            if ( benchmarkState.useTx ) {
-               benchmarkState.commitTransaction( entityManager );
-            }
-         } catch (Exception e) {
-            log( e );
-            if ( benchmarkState.useTx ) {
-               benchmarkState.rollbackTransaction( entityManager );
-            }
-            throw e;
-         }
-      } finally {
-         entityManager.close();
-      }
-   }
-
-   protected void onReadNull(Object id) {
-      throw new IllegalStateException( "Entity " + id + " is null" );
-   }
-
-   protected void testCriteriaRead(BenchmarkState<T> benchmarkState, ThreadState threadState, Blackhole blackhole) throws Exception {
-      EntityManager entityManager = benchmarkState.entityManagerFactory.createEntityManager();
-      try {
-         benchmarkState.beginTransaction( entityManager );
-         try {
-            Set<Long> ids = randomIds( benchmarkState, threadState.random );
-            List<T> results = getEntities( benchmarkState, entityManager, ids );
-            if ( results.size() < benchmarkState.transactionSize ) {
-               throw new IllegalStateException();
-            }
-            for (T entity : results) {
-               blackhole.consume( entity );
-            }
-            benchmarkState.commitTransaction( entityManager );
-         } catch (Exception e) {
-            log( e );
-            benchmarkState.rollbackTransaction( entityManager );
-            throw e;
-         }
-      } finally {
-         entityManager.close();
-      }
-   }
-
-   protected void testUpdate(BenchmarkState<T> benchmarkState, ThreadState threadState, ThreadParams threadParams) throws Exception {
-      EntityManager entityManager = benchmarkState.entityManagerFactory.createEntityManager();
-      try {
-         benchmarkState.beginTransaction( entityManager );
-         try {
-            Collection<Long> ids = randomIds( benchmarkState, threadState.random, threadParams.getThreadIndex(), threadParams.getThreadCount() );
-            for (Long id : ids) {
-               T entity = entityManager.find( benchmarkState.getClazz(), id );
-               if ( entity == null ) {
-                  onReadNull( id );
-               }
-               benchmarkState.modify( entity, threadState.random );
-               entityManager.persist( entity );
-            }
-            benchmarkState.commitTransaction( entityManager );
-         } catch (Exception e) {
-            if ( isLockException( e ) ) {
-               benchmarkState.rollbackTransaction( entityManager );
-            } else {
-               log( e );
-               benchmarkState.rollbackTransaction( entityManager );
-               throw e;
-            }
-         }
-      } finally {
-         entityManager.close();
-      }
-   }
-
-   protected void testCriteriaUpdate(BenchmarkState<T> benchmarkState, ThreadState threadState, ThreadParams threadParams) throws Exception {
-      EntityManager entityManager = benchmarkState.entityManagerFactory.createEntityManager();
-      try {
-         benchmarkState.beginTransaction( entityManager );
-         try {
-            Collection<Long> ids = randomIds( benchmarkState, threadState.random, threadParams.getThreadIndex(), threadParams.getThreadCount() );
-            for (T entity : getEntities( benchmarkState, entityManager, ids )) {
-               benchmarkState.modify( entity, threadState.random );
-               entityManager.persist( entity );
-            }
-            benchmarkState.commitTransaction( entityManager );
-         } catch (Exception e) {
-            if ( isLockException( e ) ) {
-               benchmarkState.rollbackTransaction( entityManager );
-            } else {
-               log( e );
-               benchmarkState.rollbackTransaction( entityManager );
-               throw e;
-            }
-         }
-      } finally {
-         entityManager.close();
-      }
-   }
-
-   protected void testDelete(BenchmarkState<T> benchmarkState, ThreadState threadState) throws Exception {
-      EntityManager entityManager = benchmarkState.entityManagerFactory.createEntityManager();
-      try {
-         benchmarkState.beginTransaction( entityManager );
-         try {
-            for (Long id : randomIds( benchmarkState, threadState.random )) {
-               T entity = entityManager.find( benchmarkState.getClazz(), id );
-               if ( entity != null ) {
-                  entityManager.remove( entity );
-               }
-            }
-            // TODO it's possible that some of the entries are already deleted
-            benchmarkState.commitTransaction( entityManager );
-         } catch (Exception e) {
-            if ( isLockException( e ) ) {
-               benchmarkState.rollbackTransaction( entityManager );
-            } else {
-               log( e );
-               benchmarkState.rollbackTransaction( entityManager );
-               throw e;
-            }
-         }
-      } finally {
-         entityManager.close();
-      }
-   }
-
-   protected void testCriteriaDelete(BenchmarkState<T> benchmarkState, ThreadState threadState, Blackhole blackhole) throws Exception {
-      EntityManager entityManager = benchmarkState.entityManagerFactory.createEntityManager();
-      try {
-         benchmarkState.beginTransaction( entityManager );
-         try {
-            Set<Long> randomIds = randomIds( benchmarkState, threadState.random );
-            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-            CriteriaDelete<T> query = cb.createCriteriaDelete( benchmarkState.getClazz() );
-            query.where( query.from( benchmarkState.getClazz() ).get( benchmarkState.idProperty ).in( randomIds ) );
-            int deleted = entityManager.createQuery( query ).executeUpdate();
-//                String jpql = "DELETE FROM " + benchmarkState.entityName + " WHERE " + benchmarkState.idProperty + " IN (" + collectionToString(randomIds) + ")";
-//                int deleted = entityManager.createQuery(jpql).executeUpdate();
-            // it's possible that some of the entries are already deleted
-            blackhole.consume( deleted );
-            benchmarkState.commitTransaction( entityManager );
-         } catch (Exception e) {
-            if ( isLockException( e ) ) {
-               benchmarkState.rollbackTransaction( entityManager );
-            } else {
-               log( e );
-               benchmarkState.rollbackTransaction( entityManager );
-               throw e;
-            }
-         }
-      } finally {
-         entityManager.close();
-      }
-   }
-
-   protected void testQuery(BenchmarkState<T> benchmarkState, Blackhole blackhole, QueryRunner queryRunner) throws Exception {
-      EntityManager entityManager = benchmarkState.entityManagerFactory.createEntityManager();
-      try {
-         benchmarkState.beginTransaction( entityManager );
-         try {
-            CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-            Collection<?> resultList = queryRunner.runQuery( entityManager, cb );
-            for (Object o : resultList) {
-               blackhole.consume( o );
-            }
-            benchmarkState.commitTransaction( entityManager );
-         } catch (Exception e) {
-            log( e );
-            benchmarkState.rollbackTransaction( entityManager );
-            throw e;
-         }
-      } finally {
-         entityManager.close();
-      }
    }
 
    protected static boolean isLockException(Throwable e) {
@@ -837,34 +559,5 @@ public abstract class BenchmarkBase<T> {
       }
       return false;
    }
-
-   private Collection<Long> randomIds(BenchmarkState<T> benchmarkState, ThreadLocalRandom random, int threadId, int threadCount) {
-      Set<Long> ids = new HashSet<Long>( benchmarkState.transactionSize );
-      int rangeStart = (benchmarkState.dbSize * threadId) / threadCount;
-      int rangeEnd = (benchmarkState.dbSize * (threadId + 1)) / threadCount;
-      while (ids.size() < benchmarkState.transactionSize) {
-         Long id = benchmarkState.getRandomId( random, rangeStart, rangeEnd );
-         ids.add( id );
-      }
-      return ids;
-   }
-
-
-   protected Set<Long> randomIds(BenchmarkState<T> benchmarkState, ThreadLocalRandom random) {
-      Set<Long> ids = new HashSet<Long>( benchmarkState.transactionSize );
-      while (ids.size() < benchmarkState.transactionSize) {
-         Long id = benchmarkState.getRandomId( random );
-         ids.add( id );
-      }
-      return ids;
-   }
-
-   private List<T> getEntities(BenchmarkState<T> benchmarkState, EntityManager entityManager, Collection<Long> ids) {
-      Class<T> clazz = benchmarkState.getClazz();
-      CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-      CriteriaQuery<T> query = cb.createQuery( clazz );
-      return entityManager.createQuery( query.where( query.from( clazz ).get( benchmarkState.idProperty ).in( ids ) ) ).getResultList();
-   }
-
 
 }
