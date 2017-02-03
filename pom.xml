@@ -230,6 +230,11 @@
 
         <dependency>
             <groupId>com.mockrunner</groupId>
+            <artifactId>mockrunner-core</artifactId>
+            <version>1.0.10-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mockrunner</groupId>
             <artifactId>mockrunner-jdbc</artifactId>
             <version>1.0.10-SNAPSHOT</version>
         </dependency>
