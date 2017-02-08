@@ -33,6 +33,7 @@ public abstract class BenchmarkBase<T> {
 
       protected SessionFactory sessionFactory;
       protected Session session;
+      protected  HQLParser hqlParser;
 
       @Setup
       public void setup() throws Throwable {
@@ -44,6 +45,16 @@ public abstract class BenchmarkBase<T> {
             sessionFactory = new MetadataSources( registry ).buildMetadata().buildSessionFactory();
 
             session = sessionFactory.openSession();
+
+            try {
+               hqlParser = HqlParserFactory.buildHqlParser();
+            } catch (IllegalAccessException e) {
+               e.printStackTrace();
+            } catch (InstantiationException e) {
+               e.printStackTrace();
+            }
+            hqlParser.configure();
+
          } catch (Throwable t) {
             t.printStackTrace();
             log( t );
