@@ -4,12 +4,14 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later
  * See the lgpl.txt file in the root directory or http://www.gnu.org/licenses/lgpl-2.1.html
  */
-package org.jboss.perf;
+package sql.support;
 
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
 import org.hibernate.boot.registry.classloading.spi.ClassLoadingException;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.persister.common.internal.DomainMetamodelImpl;
 import org.hibernate.sqm.ConsumerContext;
+import org.hibernate.sqm.domain.DomainMetamodel;
 
 /**
  * Ultimately ConsumerContext could be implemented by SessionFactoryImpl.  And persisters, etc
