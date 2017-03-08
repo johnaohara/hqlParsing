@@ -33,6 +33,7 @@ public class ORM6HQLParser implements HQLParser {
 
    @Override
    public void configure() {
+/*
       //todo configure sessionFactory
       sessionFactory = null;
 
@@ -54,6 +55,7 @@ public class ORM6HQLParser implements HQLParser {
       }
 
       consumerContext = new ConsumerContextImpl( sessionFactory );
+*/
 
 //      throw new RuntimeException( "Not yet Supported" );
    }

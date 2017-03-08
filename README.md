@@ -8,11 +8,11 @@ A JMH micro beckmark to compare HQL parsing performance of different versions of
 
 Then you can build ORM5 with
 
-    mvn -P orm_5,h2 clean package
+    mvn -P orm_5 clean package
 
 or ORM6
 
-    mvn -P orm_6,h2 clean package 
+    mvn -P orm_6 clean package 
 
 ## Run
 
