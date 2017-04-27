@@ -276,5 +276,25 @@
             </build>
         </profile>
 
+        <profile>
+            <id>parsing</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <benchmark.type>parsing</benchmark.type>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>interpreter</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <benchmark.type>interpreter</benchmark.type>
+            </properties>
+        </profile>
+
     </profiles>
 </project>

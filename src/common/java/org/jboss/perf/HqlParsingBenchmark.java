@@ -25,6 +25,7 @@ public class HqlParsingBenchmark extends BenchmarkBase<Person> {
       return _query;
    }
 
+/*
    @Benchmark
    public void testDocoExamples92(BenchmarkState benchmarkState, Blackhole bh) throws Exception {
       Object result;
@@ -1697,6 +1698,7 @@ public class HqlParsingBenchmark extends BenchmarkBase<Person> {
       result = parse( "select distinct user.party from com.itf.iceclaims.domain.party.user.UserImpl user inner join user.party.$RelatedWorkgroups relatedWorkgroups where relatedWorkgroups.workgroup.id = :workgroup and relatedWorkgroups.effectiveTime.start <= :datesnow and relatedWorkgroups.effectiveTime.end > :dateenow ", benchmarkState );
       bh.consume( result );
    }
+*/
 
 
    private Object parse(String input, BenchmarkState benchmarkState) {

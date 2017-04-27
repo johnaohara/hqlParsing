@@ -18,7 +18,7 @@ public class TestHQLParser {
       } catch (InstantiationException e) {
          e.printStackTrace();
       }
-      hqlParser.configure();
+      hqlParser.configure( null );
    }
 
    @Test

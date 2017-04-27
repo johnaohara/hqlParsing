@@ -6,19 +6,35 @@ package org.jboss.perf;
 public class HqlParserFactory {
 
    public static HQLParser buildHqlParser() throws IllegalAccessException, InstantiationException {
-      Class<?> hqlParserClass = null;
-      try {
-         hqlParserClass = HqlParserFactory.class.getClassLoader().loadClass( "org.jboss.perf.ORM5HQLParser" );
-      } catch (ClassNotFoundException e) {
-      }
-      if (hqlParserClass == null){
-         try {
-           hqlParserClass =HqlParserFactory.class.getClassLoader().loadClass( "org.jboss.perf.ORM6HQLParser" );
-         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-         };
-      }
+      return getParser  (new String[] {"org.jboss.perf.ORM5HQLParser", "org.jboss.perf.ORM6HQLParser"}) ;
+   }
 
-      return (HQLParser) hqlParserClass.newInstance();
+   public static HQLParser buildHqlInterpreter() throws IllegalAccessException, InstantiationException {
+      return getParser  (new String[] {"org.jboss.perf.ORM5HQLInterpreter", "org.jboss.perf.ORM6HQLInterpreter"}) ;
+   }
+
+   private static HQLParser getParser(String[] classes){
+
+      Class<?> hqlParserClass = null;
+
+      for(String _class: classes){
+         try {
+            hqlParserClass =HqlParserFactory.class.getClassLoader().loadClass( _class );
+         } catch (ClassNotFoundException e) {
+            //do nothing
+         };
+
+         if ( hqlParserClass != null ) {
+            try {
+               return (HQLParser) hqlParserClass.newInstance();
+            } catch (InstantiationException e) {
+               e.printStackTrace();
+            } catch (IllegalAccessException e) {
+               e.printStackTrace();
+            }
+         }
+
+      }
+      return  null;
    }
 }

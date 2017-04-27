@@ -3,6 +3,7 @@ package org.jboss.perf;
 import antlr.RecognitionException;
 import antlr.TokenStreamException;
 import antlr.collections.AST;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.hql.internal.ast.HqlParser;
 
 /**
@@ -31,7 +32,8 @@ public class ORM5HQLParser implements HQLParser {
    }
 
    @Override
-   public void configure() {
-//      throw new RuntimeException( "Not yet Supported" );
+   public void configure(SessionFactoryImplementor sessionFactoryImplementor) {
+
    }
+
 }

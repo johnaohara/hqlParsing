@@ -27,37 +27,13 @@ public class ORM6HQLParser implements HQLParser {
       return sqmStatment ;
    }
 
-   private ConsumerContext getConsumerContext() {
-      return consumerContext;
+   @Override
+   public void configure(SessionFactoryImplementor sessionFactoryImplementor) {
+
    }
 
-   @Override
-   public void configure() {
-/*
-      //todo configure sessionFactory
-      sessionFactory = null;
-
-      final StandardServiceRegistry ssr = new StandardServiceRegistryBuilder()
-         .applySetting( AvailableSettings.JPAQL_STRICT_COMPLIANCE, strictJpaCompliance() )
-         .applySetting( AvailableSettings.HBM2DDL_AUTO, exportSchema() ? "create-drop" : "none" )
-         .applySetting( PersisterFactoryInitiator.IMPL_NAME, new PersisterFactoryImpl() )
-         .build();
-
-      try {
-         MetadataSources metadataSources = new MetadataSources( ssr );
-         applyMetadataSources( metadataSources );
-
-         this.sessionFactory = (SessionFactoryImplementor) metadataSources.buildMetadata().buildSessionFactory();
-      }
-      catch (Exception e) {
-         StandardServiceRegistryBuilder.destroy( ssr );
-         throw e;
-      }
-
-      consumerContext = new ConsumerContextImpl( sessionFactory );
-*/
-
-//      throw new RuntimeException( "Not yet Supported" );
+   private ConsumerContext getConsumerContext() {
+      return consumerContext;
    }
 
    protected void applyMetadataSources(MetadataSources metadataSources) {

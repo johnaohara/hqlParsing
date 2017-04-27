@@ -12,8 +12,12 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 
 public abstract class BenchmarkBase<T> {
@@ -33,7 +37,7 @@ public abstract class BenchmarkBase<T> {
 
       protected SessionFactory sessionFactory;
       protected Session session;
-      protected  HQLParser hqlParser;
+      protected HQLParser hqlParser;
 
       @Setup
       public void setup() throws Throwable {
@@ -47,19 +51,47 @@ public abstract class BenchmarkBase<T> {
             session = sessionFactory.openSession();
 
             try {
-               hqlParser = HqlParserFactory.buildHqlParser();
+               //TODO: determine benchmark to run from configuration
+
+               Properties appProperties = readAppProperties();
+
+               if ( appProperties.getProperty( "benchmark.type" ).equals( "parsing" ) )
+                  hqlParser = HqlParserFactory.buildHqlParser();
+               else if ( appProperties.getProperty( "benchmark.type" ).equals( "interpreter" ) )
+                  hqlParser = HqlParserFactory.buildHqlInterpreter();
+               else {
+                  //todo:: better exception handling here
+                  throw new RuntimeException( "benchmark.type unknown: " + appProperties.getProperty( "benchmark.type" ) );
+               }
+
+               System.out.println("Running benchmark with: " + hqlParser.getClass().getName());
             } catch (IllegalAccessException e) {
                e.printStackTrace();
             } catch (InstantiationException e) {
                e.printStackTrace();
             }
-            hqlParser.configure();
+            hqlParser.configure( this.sessionFactory.getSessionFactory() );
 
          } catch (Throwable t) {
             t.printStackTrace();
             log( t );
             throw t;
          }
+      }
+
+      private Properties readAppProperties() {
+         Properties prop = new Properties();
+         try (
+            InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream( "app.properties" )) {
+
+            prop.load( inputStream );
+
+         } catch (FileNotFoundException e) {
+            e.printStackTrace( System.out );
+         } catch (IOException e) {
+            e.printStackTrace( System.out );
+         }
+         return prop;
       }
 
       @TearDown
