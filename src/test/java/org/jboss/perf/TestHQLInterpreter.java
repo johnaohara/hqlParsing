@@ -30,7 +30,7 @@ public class TestHQLInterpreter {
 
          try {
             //TODO: determine benchmark to run from configuration
-            if ( true ) {
+            if ( false ) {
                hqlParser = HqlParserFactory.buildHqlParser();
             } else {
                hqlParser = HqlParserFactory.buildHqlInterpreter();
