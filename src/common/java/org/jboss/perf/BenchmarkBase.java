@@ -37,7 +37,7 @@ public abstract class BenchmarkBase<T> {
 
       protected SessionFactory sessionFactory;
       protected Session session;
-      protected HQLParser hqlParser;
+      protected BenchmarkHQLParser hqlParser;
 
       @Setup
       public void setup() throws Throwable {

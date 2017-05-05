@@ -14,7 +14,7 @@ public class TestHQLInterpreter {
 
    protected SessionFactory sessionFactory;
    protected Session session;
-   protected HQLParser hqlParser;
+   protected BenchmarkHQLParser hqlParser;
 
    @Before
    public void setup() {

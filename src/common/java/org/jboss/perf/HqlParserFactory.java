@@ -5,15 +5,15 @@ package org.jboss.perf;
  */
 public class HqlParserFactory {
 
-   public static HQLParser buildHqlParser() throws IllegalAccessException, InstantiationException {
+   public static BenchmarkHQLParser buildHqlParser() throws IllegalAccessException, InstantiationException {
       return getParser  (new String[] {"org.jboss.perf.ORM5HQLParser", "org.jboss.perf.ORM6HQLParser"}) ;
    }
 
-   public static HQLParser buildHqlInterpreter() throws IllegalAccessException, InstantiationException {
+   public static BenchmarkHQLParser buildHqlInterpreter() throws IllegalAccessException, InstantiationException {
       return getParser  (new String[] {"org.jboss.perf.ORM5HQLInterpreter", "org.jboss.perf.ORM6HQLInterpreter"}) ;
    }
 
-   private static HQLParser getParser(String[] classes){
+   private static BenchmarkHQLParser getParser(String[] classes){
 
       Class<?> hqlParserClass = null;
 
@@ -26,7 +26,7 @@ public class HqlParserFactory {
 
          if ( hqlParserClass != null ) {
             try {
-               return (HQLParser) hqlParserClass.newInstance();
+               return (BenchmarkHQLParser) hqlParserClass.newInstance();
             } catch (InstantiationException e) {
                e.printStackTrace();
             } catch (IllegalAccessException e) {

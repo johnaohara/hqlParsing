@@ -7,7 +7,7 @@ import org.junit.Test;
 
 public class TestHQLParser {
 
-   private  HQLParser hqlParser;
+   private BenchmarkHQLParser hqlParser;
 
    @Before
    public void setup(){

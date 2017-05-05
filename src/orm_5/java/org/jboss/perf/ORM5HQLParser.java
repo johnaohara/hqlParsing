@@ -9,7 +9,7 @@ import org.hibernate.hql.internal.ast.HqlParser;
 /**
  * Created by johara on 25/01/17.
  */
-public class ORM5HQLParser implements HQLParser {
+public class ORM5HQLParser implements BenchmarkHQLParser {
    @Override
    public Object parseHQL(String hqlString) {
 
