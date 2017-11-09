@@ -1,7 +1,6 @@
 package org.jboss.perf;
 
 import antlr.collections.AST;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.hql.internal.ast.ASTQueryTranslatorFactory;
 import org.hibernate.hql.internal.ast.HqlParser;
@@ -9,7 +8,6 @@ import org.hibernate.hql.internal.ast.QueryTranslatorImpl;
 import org.hibernate.hql.spi.QueryTranslatorFactory;
 
 import java.lang.invoke.CallSite;
-import java.lang.invoke.LambdaConversionException;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -27,40 +25,42 @@ public class ORM5HQLInterpreter implements BenchmarkHQLParser {
    private SessionFactoryImplementor sessionFactoryImplementor;
 
    Method reflected = null;
-   Function lambda;
    MethodHandle mh;
+   CallSite site = null;
+   Function parseFunction;
 
    public ORM5HQLInterpreter() {
 
       try {
 
-         // Define black magic.
          final MethodHandles.Lookup original = MethodHandles.lookup();
          final Field internal = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
          internal.setAccessible(true);
          final MethodHandles.Lookup trusted = (MethodHandles.Lookup) internal.get(original);
 
-         // Invoke black magic.
          final MethodHandles.Lookup caller = trusted.in(QueryTranslatorImpl.class);
 
-         reflected = QueryTranslatorImpl.class.getDeclaredMethod( "parse", boolean.class );
-         reflected.setAccessible( true );
+         final Method parseMethod = QueryTranslatorImpl.class.getDeclaredMethod("parse",
+            boolean.class);
 
-         mh = trusted.unreflect( reflected );
+         final MethodHandle parseHandle = caller.unreflect(parseMethod);
 
-         lambda = parseLambda( caller, mh );
+         mh = parseHandle;
 
-      } catch (NoSuchMethodException e) {
-         e.printStackTrace();
-      } catch (IllegalAccessException e) {
-         e.printStackTrace();
-      } catch (LambdaConversionException e) {
-         e.printStackTrace();
+         CallSite site = LambdaMetafactory.metafactory(
+             trusted, "accept", MethodType.methodType( ParseConsumer.class ),
+             mh.type(), mh, mh.type() );
+
+         MethodHandle factory = site.getTarget();
+
+         parseFunction = (Function) factory.invokeExact( );
+
+//         parseLambda = parserLambda(caller, parseHandle);
+
       } catch (Throwable throwable) {
          throwable.printStackTrace();
       }
 
-      
    }
 
    @Override
@@ -70,20 +70,20 @@ public class ORM5HQLInterpreter implements BenchmarkHQLParser {
 
       AST ast = null;
 
-      HqlParser parser = null;
+//      HqlParser parser = null;
+      Object parser = null;
       try {
-//         parser = (HqlParser) reflected.invoke( translator, false );
-//         parser = (HqlParser) result;
-//         parser = (HqlParser) mh.invoke( translator, false );
-         parser = (HqlParser) lambda.apply( false );
+
+         parser = parseFunction.apply(translator);
+
       } catch (Throwable throwable) {
          throwable.printStackTrace();
       }
 
-      ast = parser.getAST();
+      ast = null;// parser; // parser.getAST();
 
 
-      return ast;
+      return parser;
    }
 
    private QueryTranslatorImpl createNewQueryTranslator(String hql) {
@@ -103,32 +103,36 @@ public class ORM5HQLInterpreter implements BenchmarkHQLParser {
 
 
 
-   static Function parseLambda(final MethodHandles.Lookup caller,
-                                     final MethodHandle methodHandle) throws Throwable {
 
-      final Class<?> functionKlaz = Function.class;
-      final String functionName = "apply";
-      final Class<?> functionReturn = Object.class;
-//      final Class<?>[] functionParams = new Class<?>[] { boolean.class };
-      final Class<?>[] functionParams = new Class<?>[] { QueryTranslatorImpl.class, boolean.class };
-      //
+   static ParseConsumer<QueryTranslatorImpl, HqlParser> parserLambda(final MethodHandles.Lookup caller,
+                                      final MethodHandle setterHandle) throws Throwable {
 
-      final MethodType factoryMethodType = MethodType.methodType(functionKlaz);
-      final MethodType functionMethodType = MethodType.methodType(functionReturn, functionParams);
+      final Class<?> functionKlaz = ParseConsumer.class;
 
-      final CallSite parseFactory = LambdaMetafactory.metafactory( //
+      final String functionName = "accept";
+      final Class<?> functionReturn = HqlParser.class;
+      final Class<?>[] functionParams = new Class<?>[] { QueryTranslatorImpl.class,
+         boolean.class };
+
+      final MethodType factoryMethodType = MethodType
+         .methodType(functionKlaz);
+      final MethodType functionMethodType = MethodType.methodType(
+         functionReturn, functionParams);
+
+      final CallSite setterFactory = LambdaMetafactory.metafactory( //
          caller, // Represents a lookup context.
          functionName, // The name of the method to implement.
          factoryMethodType, // Signature of the factory method.
          functionMethodType, // Signature of function implementation.
-         methodHandle, // Function method implementation.
-         methodHandle.type() // Function method type signature.
+         setterHandle, // Function method implementation.
+         setterHandle.type() // Function method type signature.
       );
 
-      final MethodHandle parseInvoker = parseFactory.getTarget();
+      final MethodHandle parseInvoker = setterFactory.getTarget();
 
-      final Function parseLambda = (Function) parseInvoker.invokeExact();
+      final ParseConsumer setterLambda = (ParseConsumer) parseInvoker
+         .invoke();
 
-      return parseLambda;
+      return setterLambda;
    }
 }
